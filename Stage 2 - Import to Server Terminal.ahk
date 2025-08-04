@@ -1,4 +1,4 @@
-﻿; STAGE 2 - DynmapWebDrawer
+﻿; STAGE 2 - DynmapWebDraw
 ; This script will import the finished coordinates from stage 1 into the server terminal.
 ; MIT License
 ; Copyright (c) 2025 Lunar
