@@ -18,7 +18,6 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 #Requires AutoHotkey v2.0
-
 MsgBox "Step 1: Welcome to Stage 2 of DynWebDrawer (MIT License).`n`nYou will now be prompted to select a coordinate file exported in Stage 1 (called 'dynmap_coords.txt').`nIf you don't have this file, click Cancel in the open file dialog to exit."
 
 ; Open a file dialog for the user to select the coordinate file
@@ -76,17 +75,26 @@ try{
         ExitApp
     }
 
-    for _, coord in coords {
-        if Trim(coord) == "" 
+    for i, coord in coords {
+        coord := Trim(coord)
+        if coord = ""
             continue  ; Skip empty lines
 
         parts := StrSplit(coord, ",")
         msg := "dmarker addcorner " . parts[1] . " " . parts[2] . " " . parts[3] . " world"
 
+        ; Show progress tooltip
+        ToolTip "📌 Sending coordinate " i " of " coords.Length
+        Sleep 50
+
+        ; Send the command
         Send msg
         Send "{Enter}"
-        Sleep 50 ; If you really want to speed things up, change this, but this could cause server lag.
+
+        Sleep 50
     }
+
+    ToolTip  ; Clears the tooltip when done
 
     MsgBox "✅ All coordinates have been sent!`n`nYou can now create the area using:`n/dmarker addarea <id> <label> . Exiting script..."
     ExitApp

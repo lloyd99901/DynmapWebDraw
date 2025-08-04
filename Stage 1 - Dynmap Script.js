@@ -1,3 +1,6 @@
+// NOTE:
+// [!] To use this, please copy this code and paste this to the developer console when you are on the Dynmap web interface. [!]
+// -------------
 // MIT License
 // Copyright (c) 2025 Lunar
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -35,10 +38,20 @@ console.info(`
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
     `); //Print license info.
-
-console.info("DynmapWebDraw v0.3 | 🔃 Initializing DynmapWebDraw...");
+console.info("DynmapWebDraw v0.4 | 🔃 Initializing DynmapWebDraw...");
+//REQUIRED VARIABLES
 const coordsList = []; // Array to store coordinates
 let soundFeedbackEnabled = true; // Enable/disable sound feedback
+var lastMousePos = null; // Used for map drawing functions
+var crossSize = 0.0007; // Size of the crosshair in lat/lng degrees
+var drawnCrosses = []; // Track all lines drawn, used for undo action.
+var clickPoints = [];
+var pathLine = L.polyline(clickPoints, {
+    color: 'red',
+    weight: 2
+}).addTo(map);
+
+//COORDINATE FUNCTIONS
 
 function getCurrentCoordinate() {
     const coordElement = document.querySelector('.coord-control-value');
@@ -52,12 +65,63 @@ function getCurrentCoordinate() {
 
 function addCoordinateToCoordList(coord) {
     coordsList.push(coord);
-    console.log('DynmapWebDraw | 📝 Added coordinate:', coord);
+    console.log('DynmapWebDraw | 📝 Added ', coordsList.length, '# coordinate:', coord);
     // Play sound feedback if enabled
     if (soundFeedbackEnabled) {
         playAddSound();
     }
 }
+
+function undoLastCoordinate() {
+    if (coordsList.length === 0) {
+        console.error('DynmapWebDraw | ❌ Error: No coordinates to undo!');
+        return;
+    }
+    const removedCoord = coordsList.pop();
+    undoLastDrawnLine();
+    console.log('DynmapWebDraw | ◀️ Undid coordinate:', removedCoord, ' Total coordinates remaining: ', coordsList.length);
+}
+
+async function saveCoordinatesToFile() {
+    try {
+        // Create a Blob with the coordinates
+        const blob = new Blob([coordsList.join('\n')], { type: 'text/plain' });
+        // Create an object URL for the blob
+        const url = window.URL.createObjectURL(blob);
+        // Create an anchor element to trigger the download
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dynmap_coords_${new Date().toISOString().split('T')[0]}.txt`;
+        // Append and click the anchor element
+        document.body.appendChild(a);
+        a.click();
+        // Remove the anchor element after it has been clicked
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 500);
+        console.info('DynmapWebDraw | 💾 Coordinates saved to dynmap_coords.txt');
+        coordsList.length = 0;
+        clearAllLines();
+        console.log('DynmapWebDraw | ℹ️ Now load the coordinate file into the AHK script provided in the github repo. Make sure you have selected the Minecraft server terminal beforehand.');
+    } catch (error) {
+        console.error('DynmapWebDraw | ❌ Error saving coordinates:', error);
+    }
+}
+
+function copyCoordinatesToClipboard(data) {
+    try {
+        const processedData = data.replace(/,/g, ' '); // Replace commas with spaces since coord function returns commas
+        return navigator.clipboard.writeText(processedData)
+            .then(() => console.log('DynmapWebDraw | 📋 Coordinates copied to clipboard.'))
+            .catch(err => console.error('DynmapWebDraw | ❌ Failed to copy coordinates:', err));
+    } catch (err) {
+        console.error('DynmapWebDraw | ❌ Error in copyToClipboard:', err);
+        return null;
+    }
+}
+
+// NOTIFICATION FUNCTIONS
 
 function playAddSound() {
     // Create an audio context and oscillator for a simple beep sound
@@ -73,45 +137,7 @@ function playAddSound() {
     setTimeout(() => oscillator.stop(), 100);
 }
 
-function undoLastCoordinate() {
-    if (coordsList.length === 0) {
-        console.error('DynmapWebDraw | ❌ Error: No coordinates to undo!');
-        return;
-    }
-    const removedCoord = coordsList.pop();
-    console.log('DynmapWebDraw | ◀️ Undid coordinate:', removedCoord);
-    // Check if console log limit reached and clear if necessary
-    if (coordsList.length >= consoleLogLimit) {
-        clearDynmapDrawConsole();
-    }
-}
-
-async function saveCoordinatesToFile() {
-    try {
-        // Create a Blob with the coordinates
-        const blob = new Blob([coordsList.join('\n')], { type: 'text/plain' });
-        // Create an object URL for the blob
-        const url = window.URL.createObjectURL(blob);
-        // Create an anchor element to trigger the download
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'dynmap_coords.txt';
-        // Append and click the anchor element
-        document.body.appendChild(a);
-        a.click();
-        // Remove the anchor element after it has been clicked
-        setTimeout(() => {
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }, 500);
-        console.info('DynmapWebDraw | 💾 Coordinates saved to dynmap_coords.txt');
-        coordsList.length = 0;
-  
-        console.log('DynmapWebDraw | ℹ️ Now load the coordinate file into the AHK script provided in the github repo. Make sure you have selected the Minecraft server terminal beforehand.');
-    } catch (error) {
-        console.error('DynmapWebDraw | ❌ Error saving coordinates:', error);
-    }
-}
+// EVENT HANDLERS
 
 function handleKeyBindPress(key) {
     const coord = getCurrentCoordinate();
@@ -123,6 +149,7 @@ function handleKeyBindPress(key) {
     switch (key) {
         case 'x':
             addCoordinateToCoordList(coord);
+            drawAtCursor();
             break;
         case 'u':
             undoLastCoordinate();
@@ -139,22 +166,12 @@ function handleKeyBindPress(key) {
     }
 }
 
-function copyCoordinatesToClipboard(data) {
-    try {
-        const processedData = data.replace(/,/g, ' '); // Replace commas with spaces since coord function returns commas
-        return navigator.clipboard.writeText(processedData)
-            .then(() => console.log('DynmapWebDraw | 📋 Coordinates copied to clipboard.'))
-            .catch(err => console.error('DynmapWebDraw | ❌ Failed to copy coordinates:', err));
-    } catch (err) {
-        console.error('DynmapWebDraw | ❌ Error in copyToClipboard:', err);
-        return null;
-    }
-}
-
 document.addEventListener('keydown', function(event) {
     const key = event.key.toLowerCase();
     handleKeyBindPress(key);
 });
+
+//CURSOR CHANGER
 
 $(document).ready(function() {
     // Override cursor styles to precision cursor on page load
@@ -165,12 +182,69 @@ $(document).ready(function() {
     }, 50);
 });
 
+//DRAWING FUNCTIONS
+
+// Helper to draw a red crosshair at a given point
+function drawCross(pt) {
+    var lat = pt.lat, lng = pt.lng, d = crossSize;
+
+    // create two red lines as a group
+    var group = L.layerGroup([L.polyline([[lat, lng - d], [lat, lng + d]], { color:'red', weight:2 }),L.polyline([[lat - d, lng], [lat + d, lng]], { color:'red', weight:2 })]).addTo(map);
+
+    drawnCrosses.push(group);
+}
+
+map.on('mousemove', function(e){
+    lastMousePos = e.latlng;
+});
+
+function drawLineToMap(latlng){
+    clickPoints.push(latlng);
+    drawCross(latlng);
+    pathLine.setLatLngs(clickPoints);
+}
+
+function drawAtCursor(){
+    if(!lastMousePos) return;
+    drawLineToMap(lastMousePos);
+}
+
+function undoLastDrawnLine() {
+    // Nothing to undo?
+    if (clickPoints.length === 0) return;
+
+    // 1) Remove the last stored point
+    clickPoints.pop();
+
+    // 2) Update the main polyline
+    pathLine.setLatLngs(clickPoints);
+
+    // 3) Remove the last crosshair group
+    var lastGroup = drawnCrosses.pop();
+    if (lastGroup) {
+    map.removeLayer(lastGroup);
+    }
+}
+
+function clearAllLines() {
+    // Destroy all points!
+    clickPoints = [];
+    pathLine.setLatLngs([]);
+
+    // Destroy all crosshair groups!
+    drawnCrosses.forEach(g => map.removeLayer(g));
+    drawnCrosses = [];
+}
+
+//STARTUP
+
 function showKeybindHelp() {
     console.info("- X = 📝 Add coordinate (This will play a sound to let you know when a coordinate has been written)");
     console.info("- U = ◀️ Undo last coordinate");
     console.info("- W = 💾 Save all coordinates to a file");
     console.info("- M = 📋 Save coordinates to clipboard (Useful for marker points)");
     console.info("- F1 = ❔ Show help information");
+    console.info("- ℹ️ Note: The visual lines you see when drawing the map may not be 100% accurate. Use it as a reference.");
     console.info("- ℹ️ To unload DynmapWebDraw, reload the Dynmap page.");
 }
 
