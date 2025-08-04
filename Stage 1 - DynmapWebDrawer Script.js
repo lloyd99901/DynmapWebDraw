@@ -64,6 +64,11 @@ function addCoordinate(coord) {
     }
 }
 
+function clearConsole() {
+    console.clear();
+    console.log('DynmapWebDrawer | Console cleared due to log limit.');
+}
+
 function playAddSound() {
     // Create an audio context and oscillator for a simple beep sound
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
