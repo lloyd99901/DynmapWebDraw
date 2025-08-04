@@ -15,7 +15,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-clearDynmapDrawConsole();
+console.clear();
 console.info(`
     MIT License
     Copyright (c) 2025 Lunar
@@ -36,9 +36,8 @@ console.info(`
     SOFTWARE.
     `); //Print license info.
 
-console.info("DynmapWebDraw v0.2 | 🔃 Initializing DynmapWebDraw...");
+console.info("DynmapWebDraw v0.3 | 🔃 Initializing DynmapWebDraw...");
 const coordsList = []; // Array to store coordinates
-let consoleLogLimit = 50; // Maximum number of log entries before clearing
 let soundFeedbackEnabled = true; // Enable/disable sound feedback
 
 function getCurrentCoordinate() {
@@ -58,15 +57,6 @@ function addCoordinateToCoordList(coord) {
     if (soundFeedbackEnabled) {
         playAddSound();
     }
-    // Check if console log limit reached and clear if necessary
-    if (coordsList.length >= consoleLogLimit) {
-        clearDynmapDrawConsole();
-    }
-}
-
-function clearDynmapDrawConsole() {
-    console.clear();
-    console.log('DynmapWebDraw | 🗑️ Console cleared due to log limit.');
 }
 
 function playAddSound() {
