@@ -24,7 +24,7 @@ DynmapWebDraw is a two-script system designed to help you draw areas within Mine
 
 3. **🔃 Load JavaScript Script**:
    - Download the contents of this GitHub project.
-   - Copy and paste the **contents** of the Stage 1 JavaScript file into the developer console.
+   - Copy and paste the **contents** of the Stage 1 Dynmap Script JavaScript file into the developer console.
    - Press `Enter` to execute the command.
    - Please keep the developer console open, as this will notify you if there are errors.
 
@@ -44,7 +44,7 @@ DynmapWebDraw is a two-script system designed to help you draw areas within Mine
    - If you haven't, download and install from [AutoHotkey's official website](https://www.autohotkey.com/).
 
 2. **🗒️ Run the AHK Script**:
-   - Locate and double-click the Stage 2 AutoHotkey script (e.g., `Stage 2 - DynmapWebDraw Script.ahk`).
+   - Locate and double-click the Stage 2 AutoHotkey script (e.g., `Stage 2 - Import to Server Terminal.ahk`).
    - The script will prompt you to open the coordinates file. Select that.
    - The script will then ask you to select the Minecraft server terminal and press the enter key, or escape if you want to abort. Please read the warnings below before continuing.
 

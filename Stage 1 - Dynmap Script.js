@@ -15,7 +15,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-
+clearDynmapDrawConsole();
 console.info(`
     MIT License
     Copyright (c) 2025 Lunar
@@ -36,7 +36,7 @@ console.info(`
     SOFTWARE.
     `); //Print license info.
 
-console.info("DynmapWebDraw v0.1 | Initializing Dynmap Drawing Script...");
+console.info("DynmapWebDraw v0.2 | 🔃 Initializing DynmapWebDraw...");
 const coordsList = []; // Array to store coordinates
 let consoleLogLimit = 50; // Maximum number of log entries before clearing
 let soundFeedbackEnabled = true; // Enable/disable sound feedback
@@ -44,29 +44,29 @@ let soundFeedbackEnabled = true; // Enable/disable sound feedback
 function getCurrentCoordinate() {
     const coordElement = document.querySelector('.coord-control-value');
     if (!coordElement) {
-        console.error('DynmapWebDraw | Error: Coordinate element not found!');
+        console.error('DynmapWebDraw | ❌ Error: Coordinate element not found!');
         return '';
     }
     //console.debug('DynmapWebDraw | Current coordinate:', coordElement.textContent);
     return coordElement.textContent;
 }
 
-function addCoordinate(coord) {
+function addCoordinateToCoordList(coord) {
     coordsList.push(coord);
-    console.log('DynmapWebDraw | Added coordinate:', coord);
+    console.log('DynmapWebDraw | 📝 Added coordinate:', coord);
     // Play sound feedback if enabled
     if (soundFeedbackEnabled) {
         playAddSound();
     }
     // Check if console log limit reached and clear if necessary
     if (coordsList.length >= consoleLogLimit) {
-        clearConsole();
+        clearDynmapDrawConsole();
     }
 }
 
-function clearConsole() {
+function clearDynmapDrawConsole() {
     console.clear();
-    console.log('DynmapWebDraw | Console cleared due to log limit.');
+    console.log('DynmapWebDraw | 🗑️ Console cleared due to log limit.');
 }
 
 function playAddSound() {
@@ -85,14 +85,14 @@ function playAddSound() {
 
 function undoLastCoordinate() {
     if (coordsList.length === 0) {
-        console.error('DynmapWebDraw | Error: No coordinates to undo!');
+        console.error('DynmapWebDraw | ❌ Error: No coordinates to undo!');
         return;
     }
     const removedCoord = coordsList.pop();
-    console.log('DynmapWebDraw | Undid coordinate:', removedCoord);
+    console.log('DynmapWebDraw | ◀️ Undid coordinate:', removedCoord);
     // Check if console log limit reached and clear if necessary
     if (coordsList.length >= consoleLogLimit) {
-        clearConsole();
+        clearDynmapDrawConsole();
     }
 }
 
@@ -114,52 +114,75 @@ async function saveCoordinatesToFile() {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
         }, 500);
-        console.info('DynmapWebDraw | Coordinates saved to dynmap_coords.txt');
+        console.info('DynmapWebDraw | 💾 Coordinates saved to dynmap_coords.txt');
         coordsList.length = 0;
   
-        console.log('Now load the coordinate file into the AHK script provided in the github repo. Make sure you have selected the Minecraft server terminal beforehand.');
+        console.log('DynmapWebDraw | ℹ️ Now load the coordinate file into the AHK script provided in the github repo. Make sure you have selected the Minecraft server terminal beforehand.');
     } catch (error) {
-        console.error('DynmapWebDraw | Error saving coordinates:', error);
+        console.error('DynmapWebDraw | ❌ Error saving coordinates:', error);
+    }
+}
+
+function handleKeyBindPress(key) {
+    const coord = getCurrentCoordinate();
+    if (!coord) {
+        console.error('DynmapWebDraw | ❌ Invalid coordinate retrieved.');
+        return;
+    }
+
+    switch (key) {
+        case 'x':
+            addCoordinateToCoordList(coord);
+            break;
+        case 'u':
+            undoLastCoordinate();
+            break;
+        case 'w':
+            saveCoordinatesToFile();
+            break;
+        case 'f1':
+            showHelp();
+            break;
+        case 'm':
+            copyCoordinatesToClipboard(coord);
+            break;
+    }
+}
+
+function copyCoordinatesToClipboard(data) {
+    try {
+        const processedData = data.replace(/,/g, ' '); // Replace commas with spaces since coord function returns commas
+        return navigator.clipboard.writeText(processedData)
+            .then(() => console.log('DynmapWebDraw | 📋 Coordinates copied to clipboard.'))
+            .catch(err => console.error('DynmapWebDraw | ❌ Failed to copy coordinates:', err));
+    } catch (err) {
+        console.error('DynmapWebDraw | ❌ Error in copyToClipboard:', err);
+        return null;
     }
 }
 
 document.addEventListener('keydown', function(event) {
     const key = event.key.toLowerCase();
-    if (key === 'x') { // Add coordinate
-        const coord = getCurrentCoordinate();
-        if (coord) {
-            addCoordinate(coord);
-        }
-        else {
-            console.error('DynmapWebDraw | Error in processing coordinate! Function getCurrentCoordinate returned an invalid value: ', coord);
-        }
-    } else if (key === 'u') { // Undo last coordinate
-        undoLastCoordinate();
-    } else if (key === 'w') { // Save coordinates to file
-        saveCoordinatesToFile();
-    }
+    handleKeyBindPress(key);
 });
 
-function showHelp() {
-    const helpText =
-        "Keyboard Shortcuts:\n" +
-        "- X: Add current coordinate\n" +
-        "- U: Undo last coordinate\n" +
-        "- W: Save all coordinates to dynmap_coords.txt\n" +
-        "Once the coordinates have been saved, you need to load them into the AHK script, the script will then automatically write the coordinates to the server console of the Minecraft server." +
-        "\nPress F1 for additional options.";
-    console.info('DynmapWebDraw | Help information displayed.');
+$(document).ready(function() {
+    // Override cursor styles to precision cursor on page load
+    $('.leaflet-interactive, .leaflet-grab, .leaflet-crosshair').css('cursor', 'crosshair');
+
+    setInterval(() => {
+        $('.leaflet-interactive, .leaflet-grab, .leaflet-crosshair').css('cursor', 'crosshair');
+    }, 50);
+});
+
+function showKeybindHelp() {
+    console.info("- X = 📝 Add coordinate (This will play a sound to let you know when a coordinate has been written)");
+    console.info("- U = ◀️ Undo last coordinate");
+    console.info("- W = 💾 Save all coordinates to a file");
+    console.info("- M = 📋 Save coordinates to clipboard (Useful for marker points)");
+    console.info("- F1 = ❔ Show help information");
+    console.info("- ℹ️ To unload DynmapWebDraw, reload the Dynmap page.");
 }
 
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'F1') {
-        event.preventDefault();
-        showHelp();
-    }
-});
-
 console.info("DynmapWebDraw | ✅ Loaded script. Keys available to press:");
-console.info("- X = Add coordinate (This will play a sound to let you know when a coordinate has been written)");
-console.info("- U = Undo last coordinate");
-console.info("- W = Save all coordinates to a file");
-console.info("- F1 = Show help information");
+showKeybindHelp();
