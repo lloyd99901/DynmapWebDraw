@@ -155,14 +155,15 @@ map.getContainer().addEventListener('mouseup', function(e) {
 
 map.on('mousedown', function(e) { //Rapid draw function
     if (e.originalEvent.button !== 0) return; // Only respond to left-click
-
+    const coord = getCurrentCoordinate();
+    if (!coord) {
+        console.error('DynmapWebDraw | ❌ Invalid coordinate retrieved.');
+        return;
+    }
+    addCoordinateToCoordList(coord); //Once user clicks, add coordinate, but then invoke the holdInterval on the clickDelay.
+    drawAtCursor();
     // Start repeating action every X ms while held
     holdInterval = setInterval(() => {
-        const coord = getCurrentCoordinate();
-        if (!coord) {
-            console.error('DynmapWebDraw | ❌ Invalid coordinate retrieved.');
-            return;
-        }
         addCoordinateToCoordList(coord);
         drawAtCursor();
     }, clickDelay);
