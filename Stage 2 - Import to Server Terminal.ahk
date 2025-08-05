@@ -85,7 +85,6 @@ try{
 
         ; Show progress tooltip
         ToolTip "📌 Sending coordinate " i " of " coords.Length
-        Sleep 50
 
         ; Send the command
         Send msg

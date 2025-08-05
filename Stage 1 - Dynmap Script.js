@@ -42,6 +42,8 @@ console.info("DynmapWebDraw v0.4 | 🔃 Initializing DynmapWebDraw...");
 //REQUIRED VARIABLES
 const coordsList = []; // Array to store coordinates
 let soundFeedbackEnabled = true; // Enable/disable sound feedback
+let holdInterval = null;
+var clickDelay = 200; // ms between coordinate placements
 var lastMousePos = null; // Used for map drawing functions
 var crossSize = 0.0007; // Size of the crosshair in lat/lng degrees
 var drawnCrosses = []; // Track all lines drawn, used for undo action.
@@ -132,22 +134,56 @@ function playAddSound() {
     gainNode.connect(audioContext.destination);
     oscillator.type = 'sine';
     oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // 440 Hz is a A4 note
-    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Adjust volume
+    gainNode.gain.setValueAtTime(0.05, audioContext.currentTime); // Adjust volume
     oscillator.start();
-    setTimeout(() => oscillator.stop(), 100);
+    setTimeout(() => oscillator.stop(), 70);
 }
 
 // EVENT HANDLERS
 
-function handleKeyBindPress(key) {
-    const coord = getCurrentCoordinate();
-    if (!coord) {
-        console.error('DynmapWebDraw | ❌ Invalid coordinate retrieved.');
-        return;
+// If left mouse is on, disable dragging, if it's up, enable it to allow the middle mouse to drag the map.
+map.getContainer().addEventListener('mousedown', function(e) {
+    if (e.button === 0) { // Left mouse
+        map.dragging.disable();
     }
+});
+map.getContainer().addEventListener('mouseup', function(e) {
+    if (e.button === 0) { // Middle mouse
+        map.dragging.enable();
+    }
+});
 
+map.on('mousedown', function(e) { //Rapid draw function
+    if (e.originalEvent.button !== 0) return; // Only respond to left-click
+
+    // Start repeating action every X ms while held
+    holdInterval = setInterval(() => {
+        const coord = getCurrentCoordinate();
+        if (!coord) {
+            console.error('DynmapWebDraw | ❌ Invalid coordinate retrieved.');
+            return;
+        }
+        addCoordinateToCoordList(coord);
+        drawAtCursor();
+    }, clickDelay);
+});
+
+// Stop the interval when the mouse button is released
+map.on('mouseup', function(e) {
+    if (holdInterval !== null) {
+        clearInterval(holdInterval);
+        holdInterval = null;
+    }
+});
+
+function handleKeyBindPress(key) {
     switch (key) {
         case 'x':
+            const coord = getCurrentCoordinate();
+            if (!coord) {
+                console.error('DynmapWebDraw | ❌ Invalid coordinate retrieved.');
+                return;
+            }
             addCoordinateToCoordList(coord);
             drawAtCursor();
             break;
@@ -182,7 +218,7 @@ $(document).ready(function() {
     }, 50);
 });
 
-//DRAWING FUNCTIONS
+//GRAPHICS FUNCTIONS
 
 // Helper to draw a red crosshair at a given point
 function drawCross(pt) {
@@ -239,13 +275,18 @@ function clearAllLines() {
 //STARTUP
 
 function showKeybindHelp() {
-    console.info("- X = 📝 Add coordinate (This will play a sound to let you know when a coordinate has been written)");
+    console.info("- Left Mouse Click 🖱️ or X = 📝 Add coordinate (This will play a sound to let you know when a coordinate has been written)");
+    console.info("- Middle Mouse Click = Move map.");
     console.info("- U = ◀️ Undo last coordinate");
     console.info("- W = 💾 Save all coordinates to a file");
     console.info("- M = 📋 Save coordinates to clipboard (Useful for marker points)");
     console.info("- F1 = ❔ Show help information");
     console.info("- ℹ️ Note: The visual lines you see when drawing the map may not be 100% accurate. Use it as a reference.");
     console.info("- ℹ️ To unload DynmapWebDraw, reload the Dynmap page.");
+    console.info("- Variables to change:");
+    console.info("- soundFeedbackEnabled (Plays beep sound when adding coordinate) : (default = true)");
+    console.info("- clickDelay (Delay before another coordinate is added when holding the mouse down) : (default = 200)");
+    console.info("- crossSize (Size of the crosshair in lat/lng degrees) : (default = 0.0007)");
 }
 
 console.info("DynmapWebDraw | ✅ Loaded script. Keys available to press:");
