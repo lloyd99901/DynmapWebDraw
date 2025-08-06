@@ -90,7 +90,7 @@ try{
         Send msg
         Send "{Enter}"
 
-        Sleep 50
+        Sleep 20
     }
 
     ToolTip  ; Clears the tooltip when done
