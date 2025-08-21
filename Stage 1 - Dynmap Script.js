@@ -199,7 +199,7 @@ function handleKeyBindPress(key) {
         case 'w':
             saveCoordinatesToFile();
             break;
-        case 'f1':
+        case 'h':
             showHelp();
             break;
         case 'm':
@@ -286,7 +286,7 @@ function showKeybindHelp() {
     console.info("- U = ◀️ Undo last coordinate");
     console.info("- W = 💾 Save all coordinates to a file");
     console.info("- M = 📋 Save coordinates to clipboard (Useful for marker points)");
-    console.info("- F1 = ❔ Show help information");
+    console.info("- H = ❔ Show help information");
     console.info("- ℹ️ Note: The visual lines you see when drawing the map may not be 100% accurate. Use it as a reference.");
     console.info("- ℹ️ To unload DynmapWebDraw, reload the Dynmap page.");
     console.info("- Variables to change:");

@@ -1,10 +1,16 @@
 # 🗺️DynmapWebDraw
+
+<p align="center">
+    <img src="static/images/Preview.gif" alt="RMC Banner" />
+</p>
+
+
 DynmapWebDraw is a two-script system designed to help you draw areas within Minecraft using Dynmap's web interface and then automatically input these coordinates into your server terminal. This tool is ideal for automating map borders.
 ### Components 
 
 1. **JavaScript Script**: 
    - Runs within the Dynmap web interface.
-   - Allows you to draw custom areas, collect their coordinates, and save them to a file.
+   - Allows you to draw custom areas with visual graphics, and DynmapWebDraw will save them to a file when the user presses W.
 
 2. **AutoHotkey (AHK) Script**:
    - Reads the saved coordinates from the file.
@@ -30,7 +36,7 @@ DynmapWebDraw is a two-script system designed to help you draw areas within Mine
 
 5. **✏️ Draw Your Area**:
    - Once the script is loaded, you'll see a confirmation message: "DynmapWebDraw | ✅ Loaded script."
-   - Click on the Dynmap again to focus it, hover over the first corner of your desired area with your mouse cursor and press the `X` key to save that coordinate. You should hear a short beep, indicating it has saved that coordinate. Press F1 for help.
+   - Click on the Dynmap again to focus it, hover over the first corner of your desired area with your mouse cursor and press the `X` key to save that coordinate or hold down the left mouse button to save multiple coordinates rapidly. You should hear a short beep, indicating it has saved that coordinate.
    - Repeat this for each corner of your desired area.
 
 6. **💾 Save Coordinates**:
